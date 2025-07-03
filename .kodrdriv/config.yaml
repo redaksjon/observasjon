@@ -1,7 +1,5 @@
-verbose: false
-model: gpt-4o
 contextDirectories:
-  - .gitcarve/context
+  - .kodrdriv/context
 commit:
   cached: true
   sendit: true
