@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, expect, test, beforeAll, beforeEach, vi } from 'vitest';
 import { ClassifiedTranscription } from '../src/processor';
 
 // Variables to hold dynamically imported modules
@@ -6,20 +6,20 @@ let processorModule: any;
 
 // Mock dependencies
 const mockLogger = {
-    debug: jest.fn(),
-    verbose: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    debug: vi.fn(),
+    verbose: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
 };
 
-jest.unstable_mockModule('../src/logging', () => ({
-    getLogger: jest.fn().mockReturnValue(mockLogger)
+vi.mock('../src/logging', () => ({
+    getLogger: vi.fn().mockReturnValue(mockLogger)
 }));
 
 // Mock for TranscribePhase
 // @ts-ignore
-const mockTranscribe = jest.fn().mockResolvedValue({
+const mockTranscribe = vi.fn().mockResolvedValue({
     text: 'Test transcription'
 });
 
@@ -27,12 +27,12 @@ const mockTranscribeInstance = {
     transcribe: mockTranscribe
 };
 
-jest.unstable_mockModule('../src/phases/transcribe', () => ({
-    create: jest.fn().mockReturnValue(mockTranscribeInstance)
+vi.mock('../src/phases/transcribe', () => ({
+    create: vi.fn().mockReturnValue(mockTranscribeInstance)
 }));
 
 // Mock for ClassifyPhase
-const mockClassify = jest.fn<() => Promise<ClassifiedTranscription>>().mockResolvedValue({
+const mockClassify = vi.fn().mockResolvedValue({
     text: 'Test transcription',
     type: 'note',
     subject: 'Test subject'
@@ -42,19 +42,19 @@ const mockClassifyInstance = {
     classify: mockClassify
 };
 
-jest.unstable_mockModule('../src/phases/classify', () => ({
-    create: jest.fn().mockReturnValue(mockClassifyInstance)
+vi.mock('../src/phases/classify', () => ({
+    create: vi.fn().mockReturnValue(mockClassifyInstance)
 }));
 
 // Mock for ComposePhase
-const mockCompose = jest.fn<() => Promise<void>>().mockResolvedValue(undefined);
+const mockCompose = vi.fn().mockResolvedValue(undefined);
 
 const mockComposeInstance = {
     compose: mockCompose
 };
 
-jest.unstable_mockModule('../src/phases/compose', () => ({
-    create: jest.fn().mockReturnValue(mockComposeInstance)
+vi.mock('../src/phases/compose', () => ({
+    create: vi.fn().mockReturnValue(mockComposeInstance)
 }));
 
 // Mock for LocatePhase
@@ -67,29 +67,29 @@ const mockLocateResult = {
     hash: 'test-hash-123'
 };
 
-const mockLocate = jest.fn<() => Promise<typeof mockLocateResult>>().mockResolvedValue(mockLocateResult);
+const mockLocate = vi.fn().mockResolvedValue(mockLocateResult);
 
 const mockLocateInstance = {
     locate: mockLocate
 };
 
-jest.unstable_mockModule('../src/phases/locate', () => ({
-    create: jest.fn().mockReturnValue(mockLocateInstance)
+vi.mock('../src/phases/locate', () => ({
+    create: vi.fn().mockReturnValue(mockLocateInstance)
 }));
 
 // Mock for CompletePhase
-const mockComplete = jest.fn<() => Promise<string>>().mockResolvedValue('/test/processed/2023-1-1-test-hash-123-note-test-subject.mp3');
+const mockComplete = vi.fn().mockResolvedValue('/test/processed/2023-1-1-test-hash-123-note-test-subject.mp3');
 
 const mockCompleteInstance = {
     complete: mockComplete
 };
 
-jest.unstable_mockModule('../src/phases/complete', () => ({
-    create: jest.fn().mockReturnValue(mockCompleteInstance)
+vi.mock('../src/phases/complete', () => ({
+    create: vi.fn().mockReturnValue(mockCompleteInstance)
 }));
 
 // Mock Dreadcabinet operator
-const mockConstructFilename = jest.fn<() => Promise<string>>().mockResolvedValue('test-note-filename.md');
+const mockConstructFilename = vi.fn().mockResolvedValue('test-note-filename.md');
 
 const mockOperator = {
     constructFilename: mockConstructFilename
@@ -110,11 +110,11 @@ beforeAll(async () => {
 
 describe('Processor', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('process', () => {
-        it('should process an audio file through all phases', async () => {
+        test('should process an audio file through all phases', async () => {
             // Create a processor instance
             const processor = processorModule.create(mockConfig, mockOperator);
 
@@ -194,7 +194,7 @@ describe('Processor', () => {
             expect(mockLogger.info).toHaveBeenCalledWith('Processed file %s', testFile);
         });
 
-        it('should handle errors from locate phase', async () => {
+        test('should handle errors from locate phase', async () => {
             // Setup locate to throw an error
             const testError = new Error('Locate error');
             mockLocate.mockRejectedValueOnce(testError);
@@ -212,7 +212,7 @@ describe('Processor', () => {
             expect(mockCompose).not.toHaveBeenCalled();
         });
 
-        it('should handle errors from transcribe phase', async () => {
+        test('should handle errors from transcribe phase', async () => {
             // Setup transcribe to throw an error
             const testError = new Error('Transcribe error');
             // @ts-ignore
@@ -231,7 +231,7 @@ describe('Processor', () => {
             expect(mockCompose).not.toHaveBeenCalled();
         });
 
-        it('should handle errors from classify phase', async () => {
+        test('should handle errors from classify phase', async () => {
             // Setup classify to throw an error
             const testError = new Error('Classify error');
             mockClassify.mockRejectedValueOnce(testError);
@@ -249,7 +249,7 @@ describe('Processor', () => {
             expect(mockCompose).not.toHaveBeenCalled();
         });
 
-        it('should handle errors from compose phase', async () => {
+        test('should handle errors from compose phase', async () => {
             // Setup compose to throw an error
             const testError = new Error('Compose error');
             mockCompose.mockRejectedValueOnce(testError);
@@ -267,7 +267,7 @@ describe('Processor', () => {
             expect(mockConstructFilename).toHaveBeenCalled();
         });
 
-        it('should handle errors from complete phase', async () => {
+        test('should handle errors from complete phase', async () => {
             // Setup complete to throw an error
             const testError = new Error('Complete error');
             mockComplete.mockRejectedValueOnce(testError);

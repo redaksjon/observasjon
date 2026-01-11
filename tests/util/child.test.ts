@@ -1,21 +1,20 @@
-import { jest } from '@jest/globals';
-
+import { describe, expect, test, beforeAll, beforeEach, vi } from 'vitest';
 // Mock modules
-const mockExec = jest.fn();
-const mockPromisify = jest.fn();
+const mockExec = vi.fn();
+const mockPromisify = vi.fn();
 
-jest.unstable_mockModule('child_process', () => ({
+vi.mock('child_process', () => ({
     exec: mockExec
 }));
 
-jest.unstable_mockModule('util', () => ({
+vi.mock('util', () => ({
     default: {
         promisify: mockPromisify
     }
 }));
 
 // Create the mock function to be returned by promisify with appropriate type assertion
-const mockExecPromise = jest.fn() as jest.Mock<any>;
+const mockExecPromise = vi.fn() as ReturnType<typeof vi.fn>;
 
 // Import the module under test (must be after mocks)
 let run: any;
@@ -39,11 +38,11 @@ describe('child util', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('run', () => {
-        it('should execute a command and return stdout/stderr', async () => {
+        test('should execute a command and return stdout/stderr', async () => {
             const result = await run('test command');
 
             // Verify promisify was called with exec
@@ -59,14 +58,14 @@ describe('child util', () => {
             });
         });
 
-        it('should pass options to exec', async () => {
+        test('should pass options to exec', async () => {
             const options = { cwd: '/tmp', env: { NODE_ENV: 'test' } };
             await run('test command', options);
 
             expect(mockExecPromise).toHaveBeenCalledWith('test command', options);
         });
 
-        it('should handle command failures', async () => {
+        test('should handle command failures', async () => {
             // Override the implementation for this test
             const error = new Error('Command failed');
             mockExecPromise.mockImplementationOnce(() => Promise.reject(error));

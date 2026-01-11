@@ -1,52 +1,52 @@
-import { jest } from '@jest/globals';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { FilesystemStructure } from '@theunwalked/dreadcabinet';
 import { FilenameOption } from '@theunwalked/dreadcabinet';
 
 // Setup mock functions that will be used inside mock modules
 const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
 };
 
-const mockGetAudioCreationTime = jest.fn();
-const mockHashFile = jest.fn();
-const mockNow = jest.fn();
-const mockConstructOutputDirectory = jest.fn();
-const mockConstructFilename = jest.fn();
+const mockGetAudioCreationTime = vi.fn();
+const mockHashFile = vi.fn();
+const mockNow = vi.fn();
+const mockConstructOutputDirectory = vi.fn();
+const mockConstructFilename = vi.fn();
 
 // Mock fs and crypto before importing anything that might use them
-jest.mock('fs', () => ({
+vi.mock('fs', () => ({
     promises: {
-        readFile: jest.fn(),
-        stat: jest.fn(),
-        access: jest.fn()
+        readFile: vi.fn(),
+        stat: vi.fn(),
+        access: vi.fn()
     }
 }), { virtual: true });
 
-jest.mock('crypto', () => ({
+vi.mock('crypto', () => ({
     createHash: jest.fn(() => ({
-        update: jest.fn().mockReturnThis(),
-        digest: jest.fn().mockReturnValue('12345678abcdef')
+        update: vi.fn().mockReturnThis(),
+        digest: vi.fn().mockReturnValue('12345678abcdef')
     }))
 }), { virtual: true });
 
 // Mock modules before importing the code under test
-jest.unstable_mockModule('@/logging', () => ({
+vi.mock('@/logging', () => ({
     getLogger: jest.fn(() => mockLogger)
 }));
 
-jest.unstable_mockModule('@/util/media', () => ({
+vi.mock('@/util/media', () => ({
     create: jest.fn(() => ({
         getAudioCreationTime: mockGetAudioCreationTime
     }))
 }));
 
-const mockExists = jest.fn();
-const mockCreateDirectory = jest.fn();
+const mockExists = vi.fn();
+const mockCreateDirectory = vi.fn();
 
-jest.unstable_mockModule('@/util/storage', () => ({
+vi.mock('@/util/storage', () => ({
     create: jest.fn(() => ({
         hashFile: mockHashFile,
         exists: mockExists,
@@ -54,7 +54,7 @@ jest.unstable_mockModule('@/util/storage', () => ({
     }))
 }));
 
-jest.unstable_mockModule('@/util/dates', () => ({
+vi.mock('@/util/dates', () => ({
     create: jest.fn(() => ({
         now: mockNow
     }))
@@ -66,7 +66,7 @@ const LocatePhase = await import('@/phases/locate');
 
 describe('locate', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
 
         // Set up common mock behaviors
         // @ts-ignore
@@ -82,7 +82,7 @@ describe('locate', () => {
     });
 
     describe('create', () => {
-        it('should create a locate instance with correct dependencies', () => {
+        test('should create a locate instance with correct dependencies', () => {
             const runConfig = {
                 timezone: 'UTC',
                 outputStructure: 'month' as FilesystemStructure,
@@ -111,7 +111,7 @@ describe('locate', () => {
                 constructOutputDirectory: mockConstructOutputDirectory,
                 constructFilename: mockConstructFilename,
                 // @ts-ignore
-                process: jest.fn()
+                process: vi.fn()
             };
 
             // @ts-ignore
@@ -122,7 +122,7 @@ describe('locate', () => {
     });
 
     describe('locate', () => {
-        it('should process audio file and return correct metadata', async () => {
+        test('should process audio file and return correct metadata', async () => {
             const runConfig = {
                 timezone: 'UTC',
                 outputStructure: 'month' as FilesystemStructure,
@@ -151,7 +151,7 @@ describe('locate', () => {
                 constructOutputDirectory: mockConstructOutputDirectory,
                 constructFilename: mockConstructFilename,
                 // @ts-ignore
-                process: jest.fn()
+                process: vi.fn()
             };
 
             // @ts-ignore
@@ -174,7 +174,7 @@ describe('locate', () => {
             expect(mockConstructFilename).toHaveBeenCalledWith(new Date('2023-01-01T12:00:00Z'), 'transcription', '12345678');
         });
 
-        it('should use current date when creation time cannot be determined', async () => {
+        test('should use current date when creation time cannot be determined', async () => {
             // @ts-ignore
             mockGetAudioCreationTime.mockResolvedValueOnce(null);
 
@@ -206,7 +206,7 @@ describe('locate', () => {
                 constructOutputDirectory: mockConstructOutputDirectory,
                 constructFilename: mockConstructFilename,
                 // @ts-ignore
-                process: jest.fn()
+                process: vi.fn()
             };
 
             // @ts-ignore

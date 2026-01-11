@@ -1,32 +1,32 @@
-import { jest } from '@jest/globals';
+import { describe, expect, beforeAll, beforeEach, test, vi } from 'vitest';
 
 // Variables to hold dynamically imported modules
 let completeModule: any;
 
 // Mock dependencies
 const mockLogger = {
-    debug: jest.fn(),
-    verbose: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    debug: vi.fn(),
+    verbose: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
 };
 
-jest.unstable_mockModule('@/logging', () => ({
-    getLogger: jest.fn().mockReturnValue(mockLogger)
+vi.mock('@/logging', () => ({
+    getLogger: vi.fn().mockReturnValue(mockLogger)
 }));
 
 // Mock storage
 const mockStorage = {
-    exists: jest.fn(),
-    createDirectory: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    deleteFile: jest.fn()
+    exists: vi.fn(),
+    createDirectory: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    deleteFile: vi.fn()
 };
 
-jest.unstable_mockModule('@/util/storage', () => ({
-    create: jest.fn().mockReturnValue(mockStorage)
+vi.mock('@/util/storage', () => ({
+    create: vi.fn().mockReturnValue(mockStorage)
 }));
 
 // Load all dynamic imports before tests
@@ -36,11 +36,11 @@ beforeAll(async () => {
 
 describe('Complete Phase', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('complete', () => {
-        it('should move audio file to processed directory with correct naming format', async () => {
+        test('should move audio file to processed directory with correct naming format', async () => {
             // Setup
             const config = {
                 processedDirectory: './processed',
@@ -88,7 +88,7 @@ describe('Complete Phase', () => {
             expect(mockLogger.info).toHaveBeenCalledWith('Moved file to %s', expectedPath);
         });
 
-        it('should create processed directory if it does not exist', async () => {
+        test('should create processed directory if it does not exist', async () => {
             // Setup
             const config = {
                 processedDirectory: './processed',
@@ -124,7 +124,7 @@ describe('Complete Phase', () => {
             expect(mockStorage.createDirectory).toHaveBeenCalledWith('./processed');
         });
 
-        it('should skip file movement in dry run mode', async () => {
+        test('should skip file movement in dry run mode', async () => {
             // Setup with dry run enabled
             const config = {
                 processedDirectory: './processed',
