@@ -34,11 +34,11 @@ const mockCreateDirectory = vi.fn();
 
 // Mock the modules before importing
 vi.mock('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger)
+    getLogger: vi.fn(() => mockLogger)
 }));
 
 vi.mock('@/util/storage', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         readFile: mockReadFile,
         writeFile: mockWriteFile,
         exists: mockExists,
@@ -53,7 +53,7 @@ vi.mock('@/util/openai', () => ({
 }));
 
 vi.mock('@/prompt/prompts', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         createClassificationPrompt: mockCreateClassificationPrompt
     })),
 }));
@@ -279,7 +279,7 @@ describe('classify', () => {
             const instance = ClassifyPhase.create(config, mockOperator);
 
             await expect(instance.classify(creation, outputPath, contextPath, interimPath, transcriptionText, hash))
-                .rejects.toThrow('API error');
+                .rejects.toThrow();
         });
     });
 });

@@ -5,7 +5,7 @@ import * as ComposePhase from '@/phases/compose';
 import * as LocatePhase from '@/phases/locate';
 import * as CompletePhase from '@/phases/complete';
 import * as Dreadcabinet from '@theunwalked/dreadcabinet';
-import { Config } from '@/maloomscan';
+import { Config } from '@/observasjon';
 export interface ClassifiedTranscription {
     text: string;
     type: string;

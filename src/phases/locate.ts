@@ -3,7 +3,7 @@ import * as Media from '@/util/media';
 import * as Storage from '@/util/storage';
 import * as Dreadcabinet from '@theunwalked/dreadcabinet';
 import * as Dates from '@/util/dates';
-import { Config } from '@/maloomscan';
+import { Config } from '@/observasjon';
 import path from 'path';
 
 // Helper function to promisify ffmpeg.

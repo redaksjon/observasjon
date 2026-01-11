@@ -26,7 +26,7 @@ vi.mock('fs', () => ({
 }), { virtual: true });
 
 vi.mock('crypto', () => ({
-    createHash: jest.fn(() => ({
+    createHash: vi.fn(() => ({
         update: vi.fn().mockReturnThis(),
         digest: vi.fn().mockReturnValue('12345678abcdef')
     }))
@@ -34,11 +34,11 @@ vi.mock('crypto', () => ({
 
 // Mock modules before importing the code under test
 vi.mock('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger)
+    getLogger: vi.fn(() => mockLogger)
 }));
 
 vi.mock('@/util/media', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         getAudioCreationTime: mockGetAudioCreationTime
     }))
 }));
@@ -47,7 +47,7 @@ const mockExists = vi.fn();
 const mockCreateDirectory = vi.fn();
 
 vi.mock('@/util/storage', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         hashFile: mockHashFile,
         exists: mockExists,
         createDirectory: mockCreateDirectory,
@@ -55,7 +55,7 @@ vi.mock('@/util/storage', () => ({
 }));
 
 vi.mock('@/util/dates', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         now: mockNow
     }))
 }));

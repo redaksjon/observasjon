@@ -1,10 +1,10 @@
 import { Builder, Model, Prompt } from '@riotprompt/riotprompt';
 import { getLogger } from '@/logging';
 import path from 'path';
-import { ClassifiedTranscription } from 'processor';
+import { ClassifiedTranscription } from '@/processor';
 import { fileURLToPath } from 'url';
 import { DEFAULT_INSTRUCTIONS_CLASSIFY_FILE, DEFAULT_INSTRUCTIONS_COMPOSE_FILE, DEFAULT_PERSONA_CLASSIFIER_FILE, DEFAULT_PERSONA_YOU_FILE, DEFAULT_TYPE_INSTRUCTIONS_DIR } from '@/constants';
-import { Config } from '@/maloomscan';
+import { Config } from '@/observasjon';
 import { stringifyJSON } from '@/util/general';
 
 const __filename = fileURLToPath(import.meta.url);

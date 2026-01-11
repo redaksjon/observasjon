@@ -42,7 +42,7 @@ const mockStorage = {
     createDirectory: vi.fn()
 };
 vi.mock('../../src/util/storage', () => ({
-    create: jest.fn(() => mockStorage)
+    create: vi.fn(() => mockStorage)
 }));
 
 // Add type for ffprobe callback

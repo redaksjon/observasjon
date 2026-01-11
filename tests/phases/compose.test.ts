@@ -31,11 +31,11 @@ const mockCreateComposePrompt = vi.fn().mockResolvedValue('compose this transcri
 
 // Mock the modules before importing
 vi.mock('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger)
+    getLogger: vi.fn(() => mockLogger)
 }));
 
 vi.mock('@/util/storage', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         readFile: mockReadFile,
         writeFile: mockWriteFile,
         exists: mockExists,
@@ -48,7 +48,7 @@ vi.mock('@/util/openai', () => ({
 }));
 
 vi.mock('@/prompt/prompts', () => ({
-    create: jest.fn(() => ({
+    create: vi.fn(() => ({
         format: mockFormat,
         createComposePrompt: mockCreateComposePrompt
     })),

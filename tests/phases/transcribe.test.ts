@@ -42,17 +42,17 @@ const mockOverride = {
 // Mock the modules before importing
 // @ts-ignore
 vi.mock('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger),
+    getLogger: vi.fn(() => mockLogger),
 }));
 
 // @ts-ignore
 vi.mock('@/util/storage', () => ({
-    create: jest.fn(() => mockStorage),
+    create: vi.fn(() => mockStorage),
 }));
 
 // @ts-ignore
 vi.mock('@/util/media', () => ({
-    create: jest.fn(() => mockMedia),
+    create: vi.fn(() => mockMedia),
 }));
 
 // @ts-ignore
@@ -63,12 +63,12 @@ vi.mock('@/util/openai', () => ({
 
 // @ts-ignore
 vi.mock('@/util/general', () => ({
-    stringifyJSON: jest.fn((obj) => JSON.stringify(obj, null, 2)),
+    stringifyJSON: vi.fn((obj) => JSON.stringify(obj, null, 2)),
 }));
 
 // @ts-ignore
 vi.mock('@/prompt/transcribe', () => ({
-    create: jest.fn(() => mockPrompts),
+    create: vi.fn(() => mockPrompts),
 }));
 
 // Import the module under test after all mocks are set up

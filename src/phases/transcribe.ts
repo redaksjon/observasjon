@@ -1,5 +1,5 @@
 import * as Dreadcabinet from '@theunwalked/dreadcabinet';
-import { Config } from '@/maloomscan';
+import { Config } from '@/observasjon';
 import * as Logging from '@/logging';
 import * as Storage from '@/util/storage';
 import * as Media from '@/util/media';

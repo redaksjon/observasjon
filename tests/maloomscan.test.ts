@@ -1,7 +1,7 @@
 import { describe, expect, beforeAll, beforeEach, afterAll, test, vi } from 'vitest';
 
 // Variables to hold dynamically imported modules
-let maloomscan: { main: () => Promise<void> };
+let observasjon: { main: () => Promise<void> };
 
 // Define a simplified mock config 
 const mockConfig = {
@@ -130,7 +130,7 @@ afterAll(() => {
 // Load all dynamic imports before tests
 beforeAll(async () => {
     // Import the module under test after all mocks are set up
-    maloomscan = await import('../src/maloomscan.js');
+    observasjon = await import('../src/observasjon.js');
 });
 
 describe('main', () => {
@@ -152,7 +152,7 @@ describe('main', () => {
 
         const loggingModule = await import('../src/logging.js');
 
-        await maloomscan.main();
+        await observasjon.main();
 
         // Verify setLogLevel was called with 'verbose'
         expect(loggingModule.setLogLevel).toHaveBeenCalledWith('verbose');
@@ -172,7 +172,7 @@ describe('main', () => {
 
         const loggingModule = await import('../src/logging.js');
 
-        await maloomscan.main();
+        await observasjon.main();
 
         // Verify setLogLevel was called with 'debug'
         expect(loggingModule.setLogLevel).toHaveBeenCalledWith('debug');
