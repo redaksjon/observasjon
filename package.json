@@ -1,6 +1,6 @@
 {
     "name": "@jankhoj/maloomscan",
-    "version": "0.0.1",
+    "version": "0.0.2-dev.0",
     "description": "Maloomscan is a tool that helps you scan your information.",
     "main": "dist/main.js",
     "type": "module",
