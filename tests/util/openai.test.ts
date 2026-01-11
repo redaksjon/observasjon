@@ -1,19 +1,19 @@
-import { jest } from '@jest/globals';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { createMocks } from '../../jest-mocks/setup';
 
 // Get our mock objects
 const mocks = createMocks();
 
 // Setup module mocks
-jest.unstable_mockModule('openai', () => ({
+vi.mock('openai', () => ({
     OpenAI: mocks.openAIConstructor
 }));
 
-jest.unstable_mockModule('../../src/util/storage.js', () => ({
+vi.mock('../../src/util/storage.js', () => ({
     create: mocks.storageCreateMock
 }));
 
-jest.unstable_mockModule('../../src/logging.js', () => ({
+vi.mock('../../src/logging.js', () => ({
     getLogger: mocks.getLoggerMock
 }));
 
@@ -22,8 +22,8 @@ let openAiUtils: any;
 
 describe('OpenAI utilities', () => {
     beforeEach(async () => {
-        jest.clearAllMocks();
-        jest.resetModules();
+        vi.clearAllMocks();
+        vi.resetModules();
 
         // Reset mocks
         mocks.getLoggerMock.mockReturnValue(mocks.loggerMock);
@@ -33,7 +33,7 @@ describe('OpenAI utilities', () => {
     });
 
     describe('createCompletion', () => {
-        it('should successfully create a completion', async () => {
+        test('should successfully create a completion', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: 'test response' } }] };
 
@@ -48,7 +48,7 @@ describe('OpenAI utilities', () => {
             expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Received response from OpenAI: %s', 'test response');
         });
 
-        it('should handle JSON response format', async () => {
+        test('should handle JSON response format', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: '{"key": "value"}' } }] };
 
@@ -61,7 +61,7 @@ describe('OpenAI utilities', () => {
             expect(result).toEqual({ key: "value" });
         });
 
-        it('should write debug file when debug options are provided', async () => {
+        test('should write debug file when debug options are provided', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: 'test response' } }] };
 
@@ -79,7 +79,7 @@ describe('OpenAI utilities', () => {
             expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'debug.json');
         });
 
-        it('should throw error when API key is missing', async () => {
+        test('should throw error when API key is missing', async () => {
             delete process.env.OPENAI_API_KEY;
 
             await expect(openAiUtils.createCompletion([]))
@@ -87,7 +87,7 @@ describe('OpenAI utilities', () => {
                 .toThrow('OPENAI_API_KEY environment variable is not set');
         });
 
-        it('should throw error when no response is received', async () => {
+        test('should throw error when no response is received', async () => {
             const mockResponse = { choices: [{ message: { content: '' } }] };
 
             // @ts-ignore
@@ -101,7 +101,7 @@ describe('OpenAI utilities', () => {
     });
 
     describe('transcribeAudio', () => {
-        it('should successfully transcribe audio', async () => {
+        test('should successfully transcribe audio', async () => {
             const mockFilePath = '/test/audio.mp3';
             const mockTranscription = { text: 'test transcription' };
             const mockStream = {};
@@ -119,7 +119,7 @@ describe('OpenAI utilities', () => {
             expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Received transcription from OpenAI: %s', mockTranscription);
         });
 
-        it('should write debug file when debug options are provided', async () => {
+        test('should write debug file when debug options are provided', async () => {
             const mockFilePath = '/test/audio.mp3';
             const mockTranscription = { text: 'test transcription' };
             const mockStream = {};
@@ -140,7 +140,7 @@ describe('OpenAI utilities', () => {
             expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'transcription-debug.json');
         });
 
-        it('should throw error when API key is missing', async () => {
+        test('should throw error when API key is missing', async () => {
             delete process.env.OPENAI_API_KEY;
 
             await expect(openAiUtils.transcribeAudio('/test/audio.mp3'))
@@ -148,7 +148,7 @@ describe('OpenAI utilities', () => {
                 .toThrow('OPENAI_API_KEY environment variable is not set');
         });
 
-        it('should throw error when no transcription is received', async () => {
+        test('should throw error when no transcription is received', async () => {
             const mockStream = {};
 
             // @ts-ignore

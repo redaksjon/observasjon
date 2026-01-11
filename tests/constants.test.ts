@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import {
     DATE_FORMAT_DAY,
     DATE_FORMAT_HOURS,
@@ -21,13 +22,13 @@ import {
 } from '../src/constants.js';
 
 describe('constants', () => {
-    it('should have correct string values', () => {
+    test('should have correct string values', () => {
         expect(PROGRAM_NAME).toBe('maloomscan');
         expect(DEFAULT_CHARACTER_ENCODING).toBe('utf-8');
         expect(DEFAULT_BINARY_TO_TEXT_ENCODING).toBe('base64');
     });
 
-    it('should have correct date format strings', () => {
+    test('should have correct date format strings', () => {
         expect(DATE_FORMAT_MONTH_DAY).toBe('M-D');
         expect(DATE_FORMAT_YEAR).toBe('YYYY');
         expect(DATE_FORMAT_YEAR_MONTH).toBe('YYYY-M');
@@ -44,7 +45,7 @@ describe('constants', () => {
         expect(DATE_FORMAT_MILLISECONDS).toBe('SSS');
     });
 
-    it('should have correct boolean defaults', () => {
+    test('should have correct boolean defaults', () => {
         expect(DEFAULT_VERBOSE).toBe(false);
         expect(DEFAULT_DRY_RUN).toBe(false);
     });

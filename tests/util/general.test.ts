@@ -1,3 +1,4 @@
+import { describe, expect, test } from 'vitest';
 import { deepMerge } from '../../src/util/general';
 import { stringifyJSON } from '../../src/util/general';
 

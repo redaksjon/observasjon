@@ -1,28 +1,28 @@
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 export interface StorageMock {
-    writeFile: jest.Mock;
-    readStream: jest.Mock;
+    writeFile: ReturnType<typeof vi.fn>;
+    readStream: ReturnType<typeof vi.fn>;
 }
 
 export interface OpenAIMock {
     chat: {
         completions: {
-            create: jest.Mock;
+            create: ReturnType<typeof vi.fn>;
         }
     };
     audio: {
         transcriptions: {
-            create: jest.Mock;
+            create: ReturnType<typeof vi.fn>;
         }
     };
 }
 
 export const createMocks = () => {
     // Mock for OpenAI
-    const openAICreateMock = jest.fn();
-    const openAITranscribeMock = jest.fn();
-    const openAIConstructor = jest.fn().mockImplementation(() => ({
+    const openAICreateMock = vi.fn();
+    const openAITranscribeMock = vi.fn();
+    const openAIConstructor = vi.fn().mockImplementation(() => ({
         chat: {
             completions: {
                 create: openAICreateMock
@@ -37,17 +37,17 @@ export const createMocks = () => {
 
     // Mock for Storage
     const storageMock: StorageMock = {
-        writeFile: jest.fn(),
-        readStream: jest.fn()
+        writeFile: vi.fn(),
+        readStream: vi.fn()
     };
-    const storageCreateMock = jest.fn().mockReturnValue(storageMock);
+    const storageCreateMock = vi.fn().mockReturnValue(storageMock);
 
     // Mock for Logger
     const loggerMock = {
-        debug: jest.fn(),
-        error: jest.fn()
+        debug: vi.fn(),
+        error: vi.fn()
     };
-    const getLoggerMock = jest.fn().mockReturnValue(loggerMock);
+    const getLoggerMock = vi.fn().mockReturnValue(loggerMock);
 
     return {
         openAICreateMock,
