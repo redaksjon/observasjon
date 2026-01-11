@@ -1,74 +1,74 @@
-import { jest } from '@jest/globals';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 import path from 'path';
 
 // Mock objects
 const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn(),
 };
 
 const mockStorage = {
-    exists: jest.fn(),
-    readFile: jest.fn(),
-    writeFile: jest.fn(),
-    createDirectory: jest.fn(),
-    deleteFile: jest.fn(),
+    exists: vi.fn(),
+    readFile: vi.fn(),
+    writeFile: vi.fn(),
+    createDirectory: vi.fn(),
+    deleteFile: vi.fn(),
 };
 
 const mockMedia = {
-    getFileSize: jest.fn(),
-    splitAudioFile: jest.fn(),
+    getFileSize: vi.fn(),
+    splitAudioFile: vi.fn(),
 };
 
 const mockOpenAI = {
-    transcribeAudio: jest.fn(),
-    createCompletion: jest.fn(),
+    transcribeAudio: vi.fn(),
+    createCompletion: vi.fn(),
 };
 
 const mockOperator = {
-    constructFilename: jest.fn(),
+    constructFilename: vi.fn(),
 };
 
 const mockPrompts = {
-    createTranscribePrompt: jest.fn(),
+    createTranscribePrompt: vi.fn(),
 };
 
 const mockOverride = {
-    format: jest.fn(),
+    format: vi.fn(),
 };
 
 // Mock the modules before importing
 // @ts-ignore
-jest.unstable_mockModule('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger),
+vi.mock('@/logging', () => ({
+    getLogger: vi.fn(() => mockLogger),
 }));
 
 // @ts-ignore
-jest.unstable_mockModule('@/util/storage', () => ({
-    create: jest.fn(() => mockStorage),
+vi.mock('@/util/storage', () => ({
+    create: vi.fn(() => mockStorage),
 }));
 
 // @ts-ignore
-jest.unstable_mockModule('@/util/media', () => ({
-    create: jest.fn(() => mockMedia),
+vi.mock('@/util/media', () => ({
+    create: vi.fn(() => mockMedia),
 }));
 
 // @ts-ignore
-jest.unstable_mockModule('@/util/openai', () => ({
+vi.mock('@/util/openai', () => ({
     transcribeAudio: mockOpenAI.transcribeAudio,
     createCompletion: mockOpenAI.createCompletion,
 }));
 
 // @ts-ignore
-jest.unstable_mockModule('@/util/general', () => ({
-    stringifyJSON: jest.fn((obj) => JSON.stringify(obj, null, 2)),
+vi.mock('@/util/general', () => ({
+    stringifyJSON: vi.fn((obj) => JSON.stringify(obj, null, 2)),
 }));
 
 // @ts-ignore
-jest.unstable_mockModule('@/prompt/transcribe', () => ({
-    create: jest.fn(() => mockPrompts),
+vi.mock('@/prompt/transcribe', () => ({
+    create: vi.fn(() => mockPrompts),
 }));
 
 // Import the module under test after all mocks are set up
@@ -95,7 +95,7 @@ describe('Transcribe Phase Tests', () => {
     const audioFile = '/path/to/audio.mp3';
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         // @ts-ignore
         mockOperator.constructFilename.mockResolvedValue('transcript_abc123.json');
     });

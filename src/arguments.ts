@@ -2,14 +2,12 @@ import * as Dreadcabinet from "@theunwalked/dreadcabinet";
 import * as Cardigantime from '@theunwalked/cardigantime';
 import { Command } from "commander";
 import {
-    ALLOWED_MODELS,
-    ALLOWED_TRANSCRIPTION_MODELS,
-    MALOOMSCAN_DEFAULTS,
+    OBSERVASJON_DEFAULTS,
     DEFAULT_MAX_AUDIO_SIZE,
     PROGRAM_NAME,
     VERSION
 } from "@/constants";
-import { Args, Config, SecureConfig } from "@/maloomscan";
+import { Args, Config, SecureConfig } from "@/observasjon";
 import { getLogger } from "@/logging";
 import * as Storage from "@/util/storage";
 
@@ -53,7 +51,7 @@ export const configure = async (dreadcabinet: Dreadcabinet.DreadCabinet, cardiga
     const dreadcabinetValues = await dreadcabinet.read(cliArgs);
 
     let mergedConfig: Partial<Config> = {
-        ...MALOOMSCAN_DEFAULTS,    // Start with Maloomscan defaults
+        ...OBSERVASJON_DEFAULTS,    // Start with Observasjon defaults
         ...fileValues,   // Apply file values (overwrites defaults), ensure object
         ...dreadcabinetValues,              // Apply all CLI args last (highest precedence for all keys, including Dreadcabinet's)
     } as Partial<Config>;
@@ -69,10 +67,10 @@ export const configure = async (dreadcabinet: Dreadcabinet.DreadCabinet, cardiga
             mergedConfig.maxAudioSize = parsedSize;
         } else {
             logger.warn(`Invalid maxAudioSize value detected after merge: '${mergedConfig.maxAudioSize}', using default: ${DEFAULT_MAX_AUDIO_SIZE}`);
-            mergedConfig.maxAudioSize = DEFAULT_MAX_AUDIO_SIZE; // Use Maloomscan default if parsing fails
+            mergedConfig.maxAudioSize = DEFAULT_MAX_AUDIO_SIZE; // Use Observasjon default if parsing fails
         }
     } else if (mergedConfig.maxAudioSize === undefined) {
-        // If still undefined after all merges, apply Maloomscan default
+        // If still undefined after all merges, apply Observasjon default
         mergedConfig.maxAudioSize = DEFAULT_MAX_AUDIO_SIZE;
     }
 
@@ -84,7 +82,7 @@ export const configure = async (dreadcabinet: Dreadcabinet.DreadCabinet, cardiga
     // Validate Dreadcabinet final config
     dreadcabinet.validate(config);
 
-    // Validate Maloomscan final config
+    // Validate Observasjon final config
     await validateConfig(config);
     await validateSecureConfig(secureConfig);
 
@@ -107,10 +105,12 @@ async function validateSecureConfig(config: SecureConfig): Promise<void> {
 async function validateConfig(config: Config): Promise<void> {
     const logger = getLogger();
 
-    validateModel(config.model, true, 'model', ALLOWED_MODELS);
-    validateModel(config.transcriptionModel, true, 'transcriptionModel', ALLOWED_TRANSCRIPTION_MODELS);
-    validateModel(config.classifyModel, false, 'classifyModel', ALLOWED_MODELS);
-    validateModel(config.composeModel, false, 'composeModel', ALLOWED_MODELS);
+    // Note: We no longer validate models against a static allowlist
+    // Users can specify any model supported by their OpenAI API
+    logger.debug(`Using model: ${config.model}`);
+    logger.debug(`Using transcription model: ${config.transcriptionModel}`);
+    logger.debug(`Using classify model: ${config.classifyModel}`);
+    logger.debug(`Using compose model: ${config.composeModel}`);
 
     if (config.contextDirectories && config.contextDirectories.length > 0) {
         await validateContextDirectories(config.contextDirectories);
@@ -136,18 +136,6 @@ async function validateConfig(config: Config): Promise<void> {
     }
 
     logger.info("Final configuration validated successfully.");
-}
-
-function validateModel(model: string | undefined, required: boolean, modelOptionName: string, allowedModels: string[]) {
-    const logger = getLogger();
-    logger.debug(`Validating model for ${modelOptionName}: ${model} (Required: ${required})`);
-    if (required && !model) {
-        throw new Error(`Model for ${modelOptionName} is required`);
-    }
-
-    if (model && !allowedModels.includes(model)) {
-        throw new Error(`Invalid ${modelOptionName}: ${model}. Allowed models are: ${allowedModels.join(', ')}`);
-    }
 }
 
 async function validateContextDirectories(contextDirectories: string[]) {

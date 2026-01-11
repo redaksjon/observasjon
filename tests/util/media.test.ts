@@ -1,25 +1,24 @@
-import { jest } from '@jest/globals';
-
+import { describe, expect, test, beforeAll, beforeEach, vi } from 'vitest';
 // Mock ffmpeg function for splitAudioFile tests
 const mockFfmpegInstance = {
-    setStartTime: jest.fn().mockReturnThis(),
-    setDuration: jest.fn().mockReturnThis(),
-    output: jest.fn().mockReturnThis(),
+    setStartTime: vi.fn().mockReturnThis(),
+    setDuration: vi.fn().mockReturnThis(),
+    output: vi.fn().mockReturnThis(),
     // @ts-ignore
-    on: jest.fn().mockImplementation(function (this: any, event: string, callback: () => void) {
+    on: vi.fn().mockImplementation(function (this: any, event: string, callback: () => void) {
         if (event === 'end') {
             callback();
         }
         return this;
     }),
-    run: jest.fn()
+    run: vi.fn()
 };
-const mockFfmpegFn = jest.fn().mockReturnValue(mockFfmpegInstance);
+const mockFfmpegFn = vi.fn().mockReturnValue(mockFfmpegInstance);
 
 
 // Mock ffmpeg module
-const mockFfprobe = jest.fn();
-jest.unstable_mockModule('fluent-ffmpeg', () => {
+const mockFfprobe = vi.fn();
+vi.mock('fluent-ffmpeg', () => {
     const defaultFunction = mockFfmpegFn;
     (defaultFunction as any).ffprobe = mockFfprobe;
     return {
@@ -31,19 +30,19 @@ jest.unstable_mockModule('fluent-ffmpeg', () => {
 
 // Mock winston logger
 const mockLogger = {
-    debug: jest.fn(),
-    error: jest.fn()
+    debug: vi.fn(),
+    error: vi.fn()
 };
 
 // Mock Storage module
 const mockStorage = {
     // @ts-ignore
-    getFileSize: jest.fn(),
+    getFileSize: vi.fn(),
     // @ts-ignore
-    createDirectory: jest.fn()
+    createDirectory: vi.fn()
 };
-jest.unstable_mockModule('../../src/util/storage', () => ({
-    create: jest.fn(() => mockStorage)
+vi.mock('../../src/util/storage', () => ({
+    create: vi.fn(() => mockStorage)
 }));
 
 // Add type for ffprobe callback
@@ -64,13 +63,13 @@ describe('media util', () => {
     });
 
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
     describe('getAudioCreationTime', () => {
         const testFilePath = '/path/to/audio.mp3';
 
-        it('should extract creation time from format tags', async () => {
+        test('should extract creation time from format tags', async () => {
             // Mock ffprobe to return metadata with creation_time in format tags
             const creationTime = '2023-01-01T12:00:00.000Z';
             mockFfprobe.mockImplementationOnce((...args: any[]) => {
@@ -95,7 +94,7 @@ describe('media util', () => {
             expect(result).toEqual(new Date(creationTime));
         });
 
-        it('should extract creation time from stream tags if not in format tags', async () => {
+        test('should extract creation time from stream tags if not in format tags', async () => {
             // Mock ffprobe to return metadata with creation_time in stream tags
             const creationTime = '2023-02-01T12:00:00.000Z';
             mockFfprobe.mockImplementationOnce((...args: any[]) => {
@@ -120,7 +119,7 @@ describe('media util', () => {
             expect(result).toEqual(new Date(creationTime));
         });
 
-        it('should return null if no creation time is found', async () => {
+        test('should return null if no creation time is found', async () => {
             // Mock ffprobe to return metadata without creation_time
             mockFfprobe.mockImplementationOnce((...args: any[]) => {
                 const [path, callback] = args;
@@ -142,7 +141,7 @@ describe('media util', () => {
             expect(result).toBeNull();
         });
 
-        it('should handle errors when extracting creation time', async () => {
+        test('should handle errors when extracting creation time', async () => {
             // Mock ffprobe to throw an error
             const error = new Error('ffprobe error');
             mockFfprobe.mockImplementationOnce((...args: any[]) => {
@@ -165,7 +164,7 @@ describe('media util', () => {
     describe('getFileSize', () => {
         const testFilePath = '/path/to/audio.mp3';
 
-        it('should return the file size in bytes', async () => {
+        test('should return the file size in bytes', async () => {
             // Mock the storage getFileSize to return a file size
             const expectedSize = 1024 * 1024; // 1MB
             // @ts-ignore
@@ -177,7 +176,7 @@ describe('media util', () => {
             expect(result).toBe(expectedSize);
         });
 
-        it('should return zero for empty files', async () => {
+        test('should return zero for empty files', async () => {
             // Mock the storage getFileSize to return zero size
             // @ts-ignore
             mockStorage.getFileSize.mockResolvedValueOnce(0);
@@ -188,7 +187,7 @@ describe('media util', () => {
             expect(result).toBe(0);
         });
 
-        it('should throw an error when file size retrieval fails', async () => {
+        test('should throw an error when file size retrieval fails', async () => {
             // Mock the storage getFileSize to throw an error
             const error = new Error('File not found');
             // @ts-ignore
@@ -221,7 +220,7 @@ describe('media util', () => {
             mockStorage.createDirectory.mockReset();
         });
 
-        it('should split audio file into appropriate segments based on file size', async () => {
+        test('should split audio file into appropriate segments based on file size', async () => {
             // Setup ffprobe mock to return metadata with duration
             mockFfprobe.mockImplementation((...args: any[]) => {
                 const [path, callback] = args;
@@ -263,7 +262,7 @@ describe('media util', () => {
         });
 
         // Skip this test until we can fix the timeout issue
-        it.skip('should handle errors when splitting audio file', async () => {
+        test.skip('should handle errors when splitting audio file', async () => {
             // Setup getFileSize mock to throw an error
             const error = new Error('File not found');
             // @ts-ignore
@@ -280,7 +279,7 @@ describe('media util', () => {
             }
         });
 
-        it('should not split file if size is less than maxSizeBytes', async () => {
+        test('should not split file if size is less than maxSizeBytes', async () => {
             // Setup ffprobe mock to return metadata with duration
             mockFfprobe.mockImplementation((...args: any[]) => {
                 const [path, callback] = args;

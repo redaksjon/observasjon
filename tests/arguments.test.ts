@@ -1,4 +1,4 @@
-import { jest } from '@jest/globals';
+import { describe, expect, beforeAll, beforeEach, afterEach, test, vi } from 'vitest';
 import { ArgumentError } from '../src/error/ArgumentError';
 
 // Import modules asynchronously using dynamic imports to support ESM
@@ -6,35 +6,35 @@ let mockDreadcabinet: any;
 let configure: any;
 
 // Mock dependencies
-jest.unstable_mockModule('../src/main', () => ({
-    createConfig: jest.fn(() => ({ verbose: false, dryRun: false, diff: true }))
+vi.mock('../src/main', () => ({
+    createConfig: vi.fn(() => ({ verbose: false, dryRun: false, diff: true }))
 }));
 
 // Mock Storage utility
-const mockIsDirectoryReadable = jest.fn(() => true);
-const mockIsDirectoryWritable = jest.fn(() => true);
+const mockIsDirectoryReadable = vi.fn(() => true);
+const mockIsDirectoryWritable = vi.fn(() => true);
 
-jest.unstable_mockModule('../src/util/storage', () => ({
-    create: jest.fn(() => ({
+vi.mock('../src/util/storage', () => ({
+    create: vi.fn(() => ({
         isDirectoryReadable: mockIsDirectoryReadable,
         isDirectoryWritable: mockIsDirectoryWritable
     }))
 }));
 
 // Mock the Dates utility
-jest.unstable_mockModule('../src/util/dates', () => ({
-    validTimezones: jest.fn(() => ['Etc/UTC', 'America/New_York', 'Europe/London'])
+vi.mock('../src/util/dates', () => ({
+    validTimezones: vi.fn(() => ['Etc/UTC', 'America/New_York', 'Europe/London'])
 }));
 
 // Default commander mock
 const defaultCommanderMock = {
-    name: jest.fn().mockReturnThis(),
-    summary: jest.fn().mockReturnThis(),
-    description: jest.fn().mockReturnThis(),
-    option: jest.fn().mockReturnThis(),
-    version: jest.fn().mockReturnThis(),
-    parse: jest.fn(),
-    opts: jest.fn().mockReturnValue({
+    name: vi.fn().mockReturnThis(),
+    summary: vi.fn().mockReturnThis(),
+    description: vi.fn().mockReturnThis(),
+    option: vi.fn().mockReturnThis(),
+    version: vi.fn().mockReturnThis(),
+    parse: vi.fn(),
+    opts: vi.fn().mockReturnValue({
         dryRun: false,
         verbose: false,
         debug: false,
@@ -55,18 +55,18 @@ const defaultCommanderMock = {
 };
 
 // Mock the Command class
-jest.mock('commander', () => {
-    const mockCommand = jest.fn().mockImplementation(() => defaultCommanderMock);
+vi.mock('commander', () => {
+    const mockCommand = vi.fn().mockImplementation(() => defaultCommanderMock);
     return { Command: mockCommand };
 });
 
 // Mock Dreadcabinet
 const mockDreadcabinetInstance = {
-    configure: jest.fn().mockReturnValue(defaultCommanderMock),
-    read: jest.fn().mockImplementation((args: any) => args),
-    applyDefaults: jest.fn().mockImplementation((config: any) => config),
+    configure: vi.fn().mockReturnValue(defaultCommanderMock),
+    read: vi.fn().mockImplementation((args: any) => args),
+    applyDefaults: vi.fn().mockImplementation((config: any) => config),
     // @ts-ignore
-    validate: jest.fn().mockResolvedValue({
+    validate: vi.fn().mockResolvedValue({
         timezone: 'America/New_York',
         outputStructure: 'month',
         filenameOptions: {
@@ -82,13 +82,13 @@ const mockDreadcabinetInstance = {
 
 // Mock Cardigantime
 const mockCardigantimeInstance = {
-    configure: jest.fn().mockReturnValue(defaultCommanderMock),
+    configure: vi.fn().mockReturnValue(defaultCommanderMock),
     // @ts-ignore
-    validate: jest.fn().mockResolvedValue({
+    validate: vi.fn().mockResolvedValue({
         configDirectory: 'test-config-dir'
     } as any),
     // @ts-ignore
-    read: jest.fn().mockResolvedValue({
+    read: vi.fn().mockResolvedValue({
         configDirectory: 'test-config-dir'
     } as any)
 };
@@ -101,7 +101,7 @@ beforeAll(async () => {
 
 describe('arguments', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
         process.env.OPENAI_API_KEY = 'test-api-key';
         mockIsDirectoryReadable.mockReturnValue(true);
 
@@ -132,7 +132,7 @@ describe('arguments', () => {
 
     describe('configure', () => {
 
-        it('should throw error when OpenAI API key is missing', async () => {
+        test('should throw error when OpenAI API key is missing', async () => {
             // Delete the API key from env
             delete process.env.OPENAI_API_KEY;
 
@@ -159,7 +159,7 @@ describe('arguments', () => {
             await expect(configure(mockDreadcabinetInstance, mockCardigantimeInstance)).rejects.toThrow('OpenAI API key is required');
         });
 
-        it('should use default config directory when not provided', async () => {
+        test('should use default config directory when not provided', async () => {
             // Remove configDir from options
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
@@ -185,7 +185,7 @@ describe('arguments', () => {
             expect(config.configDirectory).toBeDefined();
         });
 
-        it('should use default transcription model when not provided', async () => {
+        test('should use default transcription model when not provided', async () => {
             // Remove transcriptionModel from options
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
@@ -211,8 +211,8 @@ describe('arguments', () => {
             expect(config.transcriptionModel).toBeDefined();
         });
 
-        it('should throw error for invalid model', async () => {
-            // Mock the invalid model value
+        test('should accept any model string (no longer validates against allowlist)', async () => {
+            // Mock any model value - should now be accepted
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
                 verbose: false,
@@ -220,7 +220,7 @@ describe('arguments', () => {
                 openaiApiKey: 'test-api-key',
                 timezone: 'America/New_York',
                 transcriptionModel: 'whisper-1',
-                model: 'invalid-model', // Invalid model
+                model: 'any-model-string', // Any model string should be accepted
                 contentTypes: ['diff', 'log'],
                 recursive: false,
                 inputDirectory: 'test-input-directory',
@@ -232,18 +232,21 @@ describe('arguments', () => {
                 composeModel: 'o1-mini',
             });
 
-            await expect(configure(mockDreadcabinetInstance, mockCardigantimeInstance)).rejects.toThrow(/Invalid model/);
+            // Should now resolve successfully instead of throwing
+            const result = await configure(mockDreadcabinetInstance, mockCardigantimeInstance);
+            expect(result).toBeDefined();
+            expect(result[0].model).toBe('any-model-string');
         });
 
-        it('should throw error for invalid classify model', async () => {
-            // Mock the invalid classify model value
+        test('should accept any transcription model string (no longer validates against allowlist)', async () => {
+            // Mock any transcription model value - should now be accepted
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
                 verbose: false,
                 debug: false,
                 openaiApiKey: 'test-api-key',
                 timezone: 'America/New_York',
-                transcriptionModel: 'whisper-1-blah',
+                transcriptionModel: 'any-transcription-model', // Any transcription model should be accepted
                 model: 'gpt-4o',
                 contentTypes: ['diff', 'log'],
                 recursive: false,
@@ -252,15 +255,18 @@ describe('arguments', () => {
                 audioExtensions: ['mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm'],
                 configDirectory: 'test-config-dir',
                 overrides: false,
-                classifyModel: 'invalid-model', // Invalid classify model
+                classifyModel: 'gpt-4o-mini',
                 composeModel: 'o1-mini',
             });
 
-            await expect(configure(mockDreadcabinetInstance, mockCardigantimeInstance)).rejects.toThrow(/Invalid transcriptionModel/);
+            // Should now resolve successfully instead of throwing
+            const result = await configure(mockDreadcabinetInstance, mockCardigantimeInstance);
+            expect(result).toBeDefined();
+            expect(result[0].transcriptionModel).toBe('any-transcription-model');
         });
 
-        it('should throw error for invalid compose model', async () => {
-            // Mock the invalid compose model value
+        test('should accept any model string for all model fields (no longer validates against allowlist)', async () => {
+            // Mock any model values - should now be accepted
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
                 verbose: false,
@@ -268,7 +274,7 @@ describe('arguments', () => {
                 openaiApiKey: 'test-api-key',
                 timezone: 'America/New_York',
                 transcriptionModel: 'whisper-1',
-                model: 'gpt-4o-blah',
+                model: 'any-model-string', // Any model should be accepted
                 contentTypes: ['diff', 'log'],
                 recursive: false,
                 inputDirectory: 'test-input-directory',
@@ -276,14 +282,19 @@ describe('arguments', () => {
                 audioExtensions: ['mp3', 'mp4', 'mpeg', 'mpga', 'm4a', 'wav', 'webm'],
                 configDirectory: 'test-config-dir',
                 overrides: false,
-                classifyModel: 'gpt-4o-mini',
-                composeModel: 'invalid-model', // Invalid compose model
+                classifyModel: 'any-classify-model', // Any classify model should be accepted
+                composeModel: 'any-compose-model', // Any compose model should be accepted
             });
 
-            await expect(configure(mockDreadcabinetInstance, mockCardigantimeInstance)).rejects.toThrow(/Invalid model/);
+            // Should now resolve successfully instead of throwing
+            const result = await configure(mockDreadcabinetInstance, mockCardigantimeInstance);
+            expect(result).toBeDefined();
+            expect(result[0].model).toBe('any-model-string');
+            expect(result[0].classifyModel).toBe('any-classify-model');
+            expect(result[0].composeModel).toBe('any-compose-model');
         });
 
-        it('should throw error for invalid context directories', async () => {
+        test('should throw error for invalid context directories', async () => {
             // Set contextDirectories with an invalid directory
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,
@@ -314,7 +325,7 @@ describe('arguments', () => {
             await expect(configure(mockDreadcabinetInstance, mockCardigantimeInstance)).rejects.toThrow('Context directory does not exist or is not readable');
         });
 
-        it('should use default values for optional parameters', async () => {
+        test('should use default values for optional parameters', async () => {
             // Remove optional parameters
             defaultCommanderMock.opts.mockReturnValue({
                 dryRun: false,

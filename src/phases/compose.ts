@@ -2,7 +2,7 @@ import { Chat, Formatter } from '@riotprompt/riotprompt';
 import { ChatCompletionMessageParam } from 'openai/resources';
 import path from 'path';
 import * as Logging from '@/logging';
-import { Config } from '@/maloomscan';
+import { Config } from '@/observasjon';
 import { ClassifiedTranscription } from '@/processor';
 import * as Prompt from '@/prompt/prompts';
 import { stringifyJSON } from '@/util/general';

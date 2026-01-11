@@ -1,20 +1,53 @@
-import { jest } from '@jest/globals';
-import { createMocks } from '../../jest-mocks/setup';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 
-// Get our mock objects
-const mocks = createMocks();
+// Setup mock objects
+const mockOpenAICreate = vi.fn();
+const mockOpenAITranscribe = vi.fn();
+const mockChat = {
+    completions: {
+        create: mockOpenAICreate
+    }
+};
+const mockAudio = {
+    transcriptions: {
+        create: mockOpenAITranscribe
+    }
+};
+
+const mockOpenAIInstance = {
+    chat: mockChat,
+    audio: mockAudio
+};
+
+const mockOpenAIConstructor = vi.fn(() => mockOpenAIInstance);
+
+const mockStorageWriteFile = vi.fn();
+const mockStorageReadStream = vi.fn();
+const mockStorage = {
+    writeFile: mockStorageWriteFile,
+    readStream: mockStorageReadStream
+};
+const mockStorageCreate = vi.fn(() => mockStorage);
+
+const mockLogger = {
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
+};
+const mockGetLogger = vi.fn(() => mockLogger);
 
 // Setup module mocks
-jest.unstable_mockModule('openai', () => ({
-    OpenAI: mocks.openAIConstructor
+vi.mock('openai', () => ({
+    OpenAI: mockOpenAIConstructor
 }));
 
-jest.unstable_mockModule('../../src/util/storage.js', () => ({
-    create: mocks.storageCreateMock
+vi.mock('../../src/util/storage.js', () => ({
+    create: mockStorageCreate
 }));
 
-jest.unstable_mockModule('../../src/logging.js', () => ({
-    getLogger: mocks.getLoggerMock
+vi.mock('../../src/logging.js', () => ({
+    getLogger: mockGetLogger
 }));
 
 // Import the module under test
@@ -22,38 +55,39 @@ let openAiUtils: any;
 
 describe('OpenAI utilities', () => {
     beforeEach(async () => {
-        jest.clearAllMocks();
-        jest.resetModules();
+        vi.clearAllMocks();
+        vi.resetModules();
 
         // Reset mocks
-        mocks.getLoggerMock.mockReturnValue(mocks.loggerMock);
+        mockGetLogger.mockReturnValue(mockLogger);
+        mockStorageCreate.mockReturnValue(mockStorage);
 
         // Import the module under test
         openAiUtils = await import('../../src/util/openai.js');
     });
 
     describe('createCompletion', () => {
-        it('should successfully create a completion', async () => {
+        test('should successfully create a completion', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: 'test response' } }] };
 
             // @ts-ignore
-            mocks.openAICreateMock.mockResolvedValue(mockResponse);
+            mockOpenAICreate.mockResolvedValue(mockResponse);
             process.env.OPENAI_API_KEY = 'test-key';
 
             const result = await openAiUtils.createCompletion(mockMessages);
 
             expect(result).toBe('test response');
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Sending prompt to OpenAI: %j', mockMessages);
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Received response from OpenAI: %s', 'test response');
+            expect(mockLogger.debug).toHaveBeenCalledWith('Sending prompt to OpenAI: %j', mockMessages);
+            expect(mockLogger.debug).toHaveBeenCalledWith('Received response from OpenAI: %s', 'test response');
         });
 
-        it('should handle JSON response format', async () => {
+        test('should handle JSON response format', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: '{"key": "value"}' } }] };
 
             // @ts-ignore
-            mocks.openAICreateMock.mockResolvedValue(mockResponse);
+            mockOpenAICreate.mockResolvedValue(mockResponse);
             process.env.OPENAI_API_KEY = 'test-key';
 
             const result = await openAiUtils.createCompletion(mockMessages, { responseFormat: { type: 'json' } });
@@ -61,25 +95,25 @@ describe('OpenAI utilities', () => {
             expect(result).toEqual({ key: "value" });
         });
 
-        it('should write debug file when debug options are provided', async () => {
+        test('should write debug file when debug options are provided', async () => {
             const mockMessages = [{ role: 'user', content: 'test' }];
             const mockResponse = { choices: [{ message: { content: 'test response' } }] };
 
             // @ts-ignore
-            mocks.openAICreateMock.mockResolvedValue(mockResponse);
+            mockOpenAICreate.mockResolvedValue(mockResponse);
             process.env.OPENAI_API_KEY = 'test-key';
 
             await openAiUtils.createCompletion(mockMessages, { debug: true, debugFile: 'debug.json' });
 
-            expect(mocks.storageMock.writeFile).toHaveBeenCalledWith(
+            expect(mockStorageWriteFile).toHaveBeenCalledWith(
                 'debug.json',
                 JSON.stringify(mockResponse, null, 2),
                 'utf8'
             );
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'debug.json');
+            expect(mockLogger.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'debug.json');
         });
 
-        it('should throw error when API key is missing', async () => {
+        test('should throw error when API key is missing', async () => {
             delete process.env.OPENAI_API_KEY;
 
             await expect(openAiUtils.createCompletion([]))
@@ -87,11 +121,11 @@ describe('OpenAI utilities', () => {
                 .toThrow('OPENAI_API_KEY environment variable is not set');
         });
 
-        it('should throw error when no response is received', async () => {
+        test('should throw error when no response is received', async () => {
             const mockResponse = { choices: [{ message: { content: '' } }] };
 
             // @ts-ignore
-            mocks.openAICreateMock.mockResolvedValue(mockResponse);
+            mockOpenAICreate.mockResolvedValue(mockResponse);
             process.env.OPENAI_API_KEY = 'test-key';
 
             await expect(openAiUtils.createCompletion([]))
@@ -101,46 +135,46 @@ describe('OpenAI utilities', () => {
     });
 
     describe('transcribeAudio', () => {
-        it('should successfully transcribe audio', async () => {
+        test('should successfully transcribe audio', async () => {
             const mockFilePath = '/test/audio.mp3';
             const mockTranscription = { text: 'test transcription' };
             const mockStream = {};
 
             // @ts-ignore
-            mocks.storageMock.readStream.mockResolvedValue(mockStream);
+            mockStorageReadStream.mockResolvedValue(mockStream);
             // @ts-ignore
-            mocks.openAITranscribeMock.mockResolvedValue(mockTranscription);
+            mockOpenAITranscribe.mockResolvedValue(mockTranscription);
             process.env.OPENAI_API_KEY = 'test-key';
 
             const result = await openAiUtils.transcribeAudio(mockFilePath);
 
             expect(result).toEqual(mockTranscription);
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Transcribing audio file: %s', mockFilePath);
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Received transcription from OpenAI: %s', mockTranscription);
+            expect(mockLogger.debug).toHaveBeenCalledWith('Transcribing audio file: %s', mockFilePath);
+            expect(mockLogger.debug).toHaveBeenCalledWith('Received transcription from OpenAI: %s', mockTranscription);
         });
 
-        it('should write debug file when debug options are provided', async () => {
+        test('should write debug file when debug options are provided', async () => {
             const mockFilePath = '/test/audio.mp3';
             const mockTranscription = { text: 'test transcription' };
             const mockStream = {};
 
             // @ts-ignore
-            mocks.storageMock.readStream.mockResolvedValue(mockStream);
+            mockStorageReadStream.mockResolvedValue(mockStream);
             // @ts-ignore
-            mocks.openAITranscribeMock.mockResolvedValue(mockTranscription);
+            mockOpenAITranscribe.mockResolvedValue(mockTranscription);
             process.env.OPENAI_API_KEY = 'test-key';
 
             await openAiUtils.transcribeAudio(mockFilePath, { debug: true, debugFile: 'transcription-debug.json' });
 
-            expect(mocks.storageMock.writeFile).toHaveBeenCalledWith(
+            expect(mockStorageWriteFile).toHaveBeenCalledWith(
                 'transcription-debug.json',
                 JSON.stringify(mockTranscription, null, 2),
                 'utf8'
             );
-            expect(mocks.loggerMock.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'transcription-debug.json');
+            expect(mockLogger.debug).toHaveBeenCalledWith('Wrote debug file to %s', 'transcription-debug.json');
         });
 
-        it('should throw error when API key is missing', async () => {
+        test('should throw error when API key is missing', async () => {
             delete process.env.OPENAI_API_KEY;
 
             await expect(openAiUtils.transcribeAudio('/test/audio.mp3'))
@@ -148,13 +182,13 @@ describe('OpenAI utilities', () => {
                 .toThrow('OPENAI_API_KEY environment variable is not set');
         });
 
-        it('should throw error when no transcription is received', async () => {
+        test('should throw error when no transcription is received', async () => {
             const mockStream = {};
 
             // @ts-ignore
-            mocks.storageMock.readStream.mockResolvedValue(mockStream);
+            mockStorageReadStream.mockResolvedValue(mockStream);
             // @ts-ignore
-            mocks.openAITranscribeMock.mockResolvedValue(null);
+            mockOpenAITranscribe.mockResolvedValue(null);
             process.env.OPENAI_API_KEY = 'test-key';
 
             await expect(openAiUtils.transcribeAudio('/test/audio.mp3'))

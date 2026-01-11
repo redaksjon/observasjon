@@ -1,4 +1,4 @@
 #!/usr/bin/env node
-import { main } from '@/maloomscan';
+import { main } from '@/observasjon';
 
 main();

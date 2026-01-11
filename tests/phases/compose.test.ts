@@ -1,41 +1,41 @@
-import { jest } from '@jest/globals';
+import { describe, expect, test, beforeEach, vi } from 'vitest';
 import { ChatCompletionMessageParam } from 'openai/resources';
 
 // Mock Dreadcabinet module
-jest.unstable_mockModule('@theunwalked/dreadcabinet', () => ({
+vi.mock('@theunwalked/dreadcabinet', () => ({
     Operator: {}
 }));
 
 // Set up mock implementations before importing modules
 const mockLogger = {
-    debug: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
+    debug: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
 };
 
 // Define mock functions with type assertions
 // @ts-ignore
-const mockReadFile = jest.fn().mockResolvedValue('Existing note content');
+const mockReadFile = vi.fn().mockResolvedValue('Existing note content');
 // @ts-ignore
-const mockWriteFile = jest.fn().mockResolvedValue(undefined);
+const mockWriteFile = vi.fn().mockResolvedValue(undefined);
 // @ts-ignore
-const mockExists = jest.fn().mockResolvedValue(false);
+const mockExists = vi.fn().mockResolvedValue(false);
 // @ts-ignore
-const mockListFiles = jest.fn().mockResolvedValue([]);
+const mockListFiles = vi.fn().mockResolvedValue([]);
 // @ts-ignore
-const mockCreateCompletion = jest.fn().mockResolvedValue('Generated note content');
+const mockCreateCompletion = vi.fn().mockResolvedValue('Generated note content');
 // @ts-ignore
-const mockFormat = jest.fn().mockReturnValue({ messages: [{ role: 'user', content: 'compose this' }] });
+const mockFormat = vi.fn().mockReturnValue({ messages: [{ role: 'user', content: 'compose this' }] });
 // @ts-ignore
-const mockCreateComposePrompt = jest.fn().mockResolvedValue('compose this transcription please');
+const mockCreateComposePrompt = vi.fn().mockResolvedValue('compose this transcription please');
 
 // Mock the modules before importing
-jest.unstable_mockModule('@/logging', () => ({
-    getLogger: jest.fn(() => mockLogger)
+vi.mock('@/logging', () => ({
+    getLogger: vi.fn(() => mockLogger)
 }));
 
-jest.unstable_mockModule('@/util/storage', () => ({
-    create: jest.fn(() => ({
+vi.mock('@/util/storage', () => ({
+    create: vi.fn(() => ({
         readFile: mockReadFile,
         writeFile: mockWriteFile,
         exists: mockExists,
@@ -43,12 +43,12 @@ jest.unstable_mockModule('@/util/storage', () => ({
     }))
 }));
 
-jest.unstable_mockModule('@/util/openai', () => ({
+vi.mock('@/util/openai', () => ({
     createCompletion: mockCreateCompletion,
 }));
 
-jest.unstable_mockModule('@/prompt/prompts', () => ({
-    create: jest.fn(() => ({
+vi.mock('@/prompt/prompts', () => ({
+    create: vi.fn(() => ({
         format: mockFormat,
         createComposePrompt: mockCreateComposePrompt
     })),
@@ -65,7 +65,7 @@ let Dreadcabinet: any;
 
 describe('compose', () => {
     beforeEach(async () => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
 
         // Import the modules
         Logging = await import('@/logging');
@@ -98,7 +98,7 @@ describe('compose', () => {
     });
 
     describe('create', () => {
-        it('should create a compose instance with correct dependencies', () => {
+        test('should create a compose instance with correct dependencies', () => {
             const config = {
                 timezone: 'UTC',
                 outputDirectory: '/output',
@@ -123,7 +123,7 @@ describe('compose', () => {
     });
 
     describe('compose', () => {
-        it('should return existing note if file with hash exists', async () => {
+        test('should return existing note if file with hash exists', async () => {
             const transcription = {
                 text: 'This is a test transcription',
                 type: 'note',
@@ -158,7 +158,7 @@ describe('compose', () => {
             expect(result).toBeUndefined();
         });
 
-        it('should return existing note content if note file already exists', async () => {
+        test('should return existing note content if note file already exists', async () => {
             const transcription = {
                 text: 'This is a test transcription',
                 type: 'note',
@@ -195,7 +195,7 @@ describe('compose', () => {
             expect(result).toBe('Existing note content');
         });
 
-        it('should generate a new note when no existing file is found', async () => {
+        test('should generate a new note when no existing file is found', async () => {
             const transcription = {
                 text: 'This is a test transcription',
                 type: 'note',
@@ -238,7 +238,7 @@ describe('compose', () => {
             expect(result).toBe('Generated note content');
         });
 
-        it('should handle different file types in transcription', async () => {
+        test('should handle different file types in transcription', async () => {
             const transcription = {
                 text: 'This is a test transcription',
                 type: 'action_item',  // Different type

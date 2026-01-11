@@ -85,7 +85,7 @@ export async function main() {
         defaults: {
             configDirectory: DEFAULT_CONFIG_DIR,
         },
-        configShape: combinedShape.shape,
+        configShape: combinedShape.shape as any,
     });
 
     const [config, secureConfig]: [Config, SecureConfig] = await Arguments.configure(dreadcabinet, cardigantime);

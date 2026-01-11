@@ -1,7 +1,7 @@
-import { jest } from '@jest/globals';
+import { describe, expect, beforeAll, beforeEach, afterAll, test, vi } from 'vitest';
 
 // Variables to hold dynamically imported modules
-let maloomscan: { main: () => Promise<void> };
+let observasjon: { main: () => Promise<void> };
 
 // Define a simplified mock config 
 const mockConfig = {
@@ -27,38 +27,38 @@ const mockConfig = {
 };
 
 // Mock dependencies to prevent the test from running actual operations
-jest.unstable_mockModule('../src/arguments', () => ({
-    // @ts-ignore - ignore TypeScript errors for jest mocks
-    configure: jest.fn().mockResolvedValue([mockConfig])
+vi.mock('../src/arguments', () => ({
+    // @ts-ignore - ignore TypeScript errors for vitest mocks
+    configure: vi.fn().mockResolvedValue([mockConfig])
 }));
 
 // Mock logging to avoid actual console output during tests
 const mockLogger = {
-    debug: jest.fn(),
-    verbose: jest.fn(),
-    info: jest.fn(),
-    warn: jest.fn(),
-    error: jest.fn()
+    debug: vi.fn(),
+    verbose: vi.fn(),
+    info: vi.fn(),
+    warn: vi.fn(),
+    error: vi.fn()
 };
 
-jest.unstable_mockModule('../src/logging', () => ({
-    getLogger: jest.fn().mockReturnValue(mockLogger),
-    setLogLevel: jest.fn()
+vi.mock('../src/logging', () => ({
+    getLogger: vi.fn().mockReturnValue(mockLogger),
+    setLogLevel: vi.fn()
 }));
 
 // Mock Processor to prevent actual processing
-const mockProcessorProcess = jest.fn();
+const mockProcessorProcess = vi.fn();
 mockProcessorProcess.mockImplementation(() => Promise.resolve());
 
-jest.unstable_mockModule('../src/processor', () => ({
-    // @ts-ignore - ignore TypeScript errors for jest mocks
-    create: jest.fn().mockReturnValue({
+vi.mock('../src/processor', () => ({
+    // @ts-ignore - ignore TypeScript errors for vitest mocks
+    create: vi.fn().mockReturnValue({
         process: mockProcessorProcess
     })
 }));
 
 // Mock Dreadcabinet to avoid actual operations
-const mockProcessFn = jest.fn().mockImplementation(async (callback: any) => {
+const mockProcessFn = vi.fn().mockImplementation(async (callback: any) => {
     // Simulate processing a single file to test the callback
     await callback('test-file.mp3');
     return Promise.resolve();
@@ -66,17 +66,17 @@ const mockProcessFn = jest.fn().mockImplementation(async (callback: any) => {
 
 const mockOperator = {
     process: mockProcessFn,
-    // @ts-ignore - ignore TypeScript errors for jest mocks
-    constructFilename: jest.fn().mockResolvedValue('test-filename'),
-    // @ts-ignore - ignore TypeScript errors for jest mocks
-    constructOutputDirectory: jest.fn().mockResolvedValue('test-output-dir')
+    // @ts-ignore - ignore TypeScript errors for vitest mocks
+    constructFilename: vi.fn().mockResolvedValue('test-filename'),
+    // @ts-ignore - ignore TypeScript errors for vitest mocks
+    constructOutputDirectory: vi.fn().mockResolvedValue('test-output-dir')
 };
 
 const mockDreadcabinetInstance = {
-    configure: jest.fn(),
-    setLogger: jest.fn(),
-    // @ts-ignore - ignore TypeScript errors for jest mocks
-    operate: jest.fn().mockResolvedValue(mockOperator)
+    configure: vi.fn(),
+    setLogger: vi.fn(),
+    // @ts-ignore - ignore TypeScript errors for vitest mocks
+    operate: vi.fn().mockResolvedValue(mockOperator)
 };
 
 const mockDreadcabinetOptions = {
@@ -96,8 +96,8 @@ const mockDreadcabinetOptions = {
 };
 
 const mockCardigantimeInstance = {
-    configure: jest.fn(),
-    validate: jest.fn()
+    configure: vi.fn(),
+    validate: vi.fn()
 };
 
 const mockCardigantimeOptions = {
@@ -112,15 +112,15 @@ const mockCardigantimeOptions = {
     features: ['config']
 };
 
-jest.unstable_mockModule('@theunwalked/cardigantime', () => ({
-    createOptions: jest.fn().mockReturnValue(mockCardigantimeOptions),
-    create: jest.fn().mockReturnValue(mockCardigantimeInstance)
+vi.mock('@theunwalked/cardigantime', () => ({
+    createOptions: vi.fn().mockReturnValue(mockCardigantimeOptions),
+    create: vi.fn().mockReturnValue(mockCardigantimeInstance)
 }));
 
 // Mock process.exit to prevent tests from actually exiting
 const originalExit = process.exit;
 beforeAll(() => {
-    process.exit = jest.fn() as any;
+    process.exit = vi.fn() as any;
 });
 
 afterAll(() => {
@@ -130,15 +130,15 @@ afterAll(() => {
 // Load all dynamic imports before tests
 beforeAll(async () => {
     // Import the module under test after all mocks are set up
-    maloomscan = await import('../src/maloomscan.js');
+    observasjon = await import('../src/observasjon.js');
 });
 
 describe('main', () => {
     beforeEach(() => {
-        jest.clearAllMocks();
+        vi.clearAllMocks();
     });
 
-    it('should set verbose log level when verbose is true', async () => {
+    test('should set verbose log level when verbose is true', async () => {
         // Create a config with verbose set to true
         const verboseConfig = {
             ...mockConfig,
@@ -147,18 +147,18 @@ describe('main', () => {
 
         // Mock Arguments.configure to return config with verbose set to true
         const argumentsModule = await import('../src/arguments.js');
-        // @ts-ignore - ignore TypeScript errors for jest mocks
-        (argumentsModule.configure as jest.Mock).mockResolvedValueOnce([verboseConfig]);
+        // @ts-ignore - ignore TypeScript errors for vitest mocks
+        (argumentsModule.configure as any).mockResolvedValueOnce([verboseConfig]);
 
         const loggingModule = await import('../src/logging.js');
 
-        await maloomscan.main();
+        await observasjon.main();
 
         // Verify setLogLevel was called with 'verbose'
         expect(loggingModule.setLogLevel).toHaveBeenCalledWith('verbose');
     });
 
-    it('should set debug log level when debug is true', async () => {
+    test('should set debug log level when debug is true', async () => {
         // Create a config with debug set to true
         const debugConfig = {
             ...mockConfig,
@@ -167,12 +167,12 @@ describe('main', () => {
 
         // Mock Arguments.configure to return config with debug set to true
         const argumentsModule = await import('../src/arguments.js');
-        // @ts-ignore - ignore TypeScript errors for jest mocks
-        (argumentsModule.configure as jest.Mock).mockResolvedValueOnce([debugConfig]);
+        // @ts-ignore - ignore TypeScript errors for vitest mocks
+        (argumentsModule.configure as any).mockResolvedValueOnce([debugConfig]);
 
         const loggingModule = await import('../src/logging.js');
 
-        await maloomscan.main();
+        await observasjon.main();
 
         // Verify setLogLevel was called with 'debug'
         expect(loggingModule.setLogLevel).toHaveBeenCalledWith('debug');
