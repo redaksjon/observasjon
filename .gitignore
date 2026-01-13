@@ -11,4 +11,5 @@ processed/
 .maloomscan/
 output
 outdiff
-outlog
+outlog/.playwright-mcp/
+/.playwright-mcp
