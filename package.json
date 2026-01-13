@@ -1,6 +1,6 @@
 {
   "name": "@redaksjon/observasjon",
-  "version": "0.0.7-dev.0",
+  "version": "0.0.7",
   "description": "Intelligent audio transcription with classification and composition",
   "main": "dist/main.js",
   "type": "module",
