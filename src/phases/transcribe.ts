@@ -49,7 +49,7 @@ export const create = (config: Config, operator: Dreadcabinet.Operator): Instanc
             transcriptOutputFilename += '.json';
         }
 
-        const transcriptOutputPath = path.join(interimPath, transcriptOutputFilename);
+        const transcriptOutputPath = path.join(interimPath, path.basename(transcriptOutputFilename));
 
         // Check if transcription already exists
         if (await storage.exists(transcriptOutputPath)) {
@@ -137,7 +137,7 @@ export const create = (config: Config, operator: Dreadcabinet.Operator): Instanc
         logger.debug('Wrote transcription to %s', transcriptOutputPath);
 
         // Create markdown version of the transcript
-        const markdownOutputFilename = transcriptOutputFilename.replace('.json', '.md');
+        const markdownOutputFilename = path.basename(transcriptOutputFilename).replace('.json', '.md');
         const markdownOutputPath = path.join(outputPath, markdownOutputFilename);
 
         // Only create the markdown file if it doesn't already exist

@@ -38,7 +38,7 @@ export const create = (config: Config, operator: Dreadcabinet.Operator): Instanc
             jsonOutputFilename += '.json';
         }
 
-        const jsonOutputPath = path.join(interimPath, jsonOutputFilename);
+        const jsonOutputPath = path.join(interimPath, path.basename(jsonOutputFilename));
         const files = await storage.listFiles(interimPath);
         const matchingFiles = files.filter((file: string) => file.includes(hash) && file.includes('classification') && file.endsWith('.json'));
 
