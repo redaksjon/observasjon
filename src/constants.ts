@@ -53,6 +53,15 @@ export const DEFAULT_CLASSIFIED_RESPONSE_SCHEMA = z.object({
         status: z.enum(['in-progress', 'completed', 'none', 'overdue']).optional(),
     })).optional(),
     text: z.string(),
+    project: z.string().optional(),
+    confidence: z.number().optional(),
+    classificationSignals: z.array(z.object({
+        type: z.string(),
+        value: z.string(),
+        weight: z.number(),
+    })).optional(),
+    reasoning: z.string().optional(),
+    tags: z.array(z.string()).optional(),
 });
 
 export const DEFAULT_OUTPUT_STRUCTURE = 'month' as FilesystemStructure;

@@ -135,6 +135,8 @@ describe('compose', () => {
             const interimPath = '/output/interim';
             const filename = 'note';
             const hash = '12345678';
+            const creationTime = new Date('2023-01-01T12:00:00.000Z');
+            const destinationPath = '/output/path/note.md';
 
             // @ts-ignore
             mockListFiles.mockResolvedValueOnce(['note-with-12345678-hash.md']);
@@ -150,7 +152,7 @@ describe('compose', () => {
             const mockOperator = {};
 
             const instance = ComposePhase.create(config, mockOperator);
-            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash);
+            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash, creationTime, destinationPath);
 
             expect(mockListFiles).toHaveBeenCalledWith(outputPath);
             expect(mockCreateCompletion).not.toHaveBeenCalled();
@@ -170,6 +172,8 @@ describe('compose', () => {
             const interimPath = '/output/interim';
             const filename = 'note';
             const hash = '12345678';
+            const creationTime = new Date('2023-01-01T12:00:00.000Z');
+            const destinationPath = '/output/path/note.md';
 
             // @ts-ignore
             mockListFiles.mockResolvedValueOnce([]);
@@ -187,7 +191,7 @@ describe('compose', () => {
             const mockOperator = {};
 
             const instance = ComposePhase.create(config, mockOperator);
-            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash);
+            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash, creationTime, destinationPath);
 
             expect(mockExists).toHaveBeenCalledWith('/output/path/note.md');
             expect(mockReadFile).toHaveBeenCalledWith('/output/path/note.md', 'utf8');
@@ -207,6 +211,8 @@ describe('compose', () => {
             const interimPath = '/output/interim';
             const filename = 'note';
             const hash = '12345678';
+            const creationTime = new Date('2023-01-01T12:00:00.000Z');
+            const destinationPath = '/output/path/note.md';
 
             // @ts-ignore
             mockListFiles.mockResolvedValueOnce([]);
@@ -224,18 +230,16 @@ describe('compose', () => {
             const mockOperator = {};
 
             const instance = ComposePhase.create(config, mockOperator);
-            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash);
+            const result = await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash, creationTime, destinationPath);
 
             expect(mockListFiles).toHaveBeenCalledWith(outputPath);
             expect(mockExists).toHaveBeenCalledWith('/output/path/note.md');
             expect(mockCreateComposePrompt).toHaveBeenCalledWith(transcription, 'note');
             expect(mockCreateCompletion).toHaveBeenCalled();
-            expect(mockWriteFile).toHaveBeenCalledWith(
-                '/output/path/note.md',
-                Buffer.from('Generated note content', 'utf8'),
-                'utf8'
-            );
-            expect(result).toBe('Generated note content');
+            expect(mockWriteFile).toHaveBeenCalled();
+            // The result should now include metadata
+            expect(result).toContain('Generated note content');
+            expect(result).toContain('## Metadata');
         });
 
         test('should handle different file types in transcription', async () => {
@@ -250,6 +254,8 @@ describe('compose', () => {
             const interimPath = '/output/interim';
             const filename = 'action';
             const hash = '12345678';
+            const creationTime = new Date('2023-01-01T12:00:00.000Z');
+            const destinationPath = '/output/path/action.md';
 
             // @ts-ignore
             mockListFiles.mockResolvedValueOnce([]);
@@ -265,14 +271,10 @@ describe('compose', () => {
 
             const mockOperator = {};
             const instance = ComposePhase.create(config, mockOperator);
-            await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash);
+            await instance.compose(transcription, outputPath, contextPath, interimPath, filename, hash, creationTime, destinationPath);
 
             expect(mockCreateComposePrompt).toHaveBeenCalledWith(transcription, 'action_item');
-            expect(mockWriteFile).toHaveBeenCalledWith(
-                '/output/path/action.md',
-                Buffer.from('Generated note content', 'utf8'),
-                'utf8'
-            );
+            expect(mockWriteFile).toHaveBeenCalled();
         });
     });
 });

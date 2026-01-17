@@ -20,7 +20,8 @@ vi.mock('../src/logging', () => ({
 // Mock for TranscribePhase
 // @ts-ignore
 const mockTranscribe = vi.fn().mockResolvedValue({
-    text: 'Test transcription'
+    text: 'Test transcription',
+    audioFileBasename: 'test-audio'
 });
 
 const mockTranscribeInstance = {
@@ -146,7 +147,7 @@ describe('Processor', () => {
                 mockLocateResult.interimPath,
                 'Test transcription', // text from mockTranscribe
                 mockLocateResult.hash,
-                undefined,
+                'test-audio',
             );
 
             // Verify constructFilename was called
@@ -168,7 +169,9 @@ describe('Processor', () => {
                 mockLocateResult.contextPath,
                 mockLocateResult.interimPath,
                 'test-note-filename.md',
-                mockLocateResult.hash
+                mockLocateResult.hash,
+                mockLocateResult.creationTime,
+                `${mockLocateResult.outputPath}/test-note-filename.md`
             );
 
             // Verify complete phase was called with correct args

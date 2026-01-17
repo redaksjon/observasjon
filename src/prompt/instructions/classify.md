@@ -119,3 +119,51 @@ Or, if a transcript says something like, "I'm an idiot for not sending over the 
 If a task is completed, then the status should be "completed".  If a task is in progress, then the status should be "in-progress".  If a task is not started, then the status should be "none".  If a task is overdue, then the status should be "overdue".
 
 If a task is about a project, person, company, or other entity that is not present in the context, then it should be ignored.
+
+## Identify Project
+
+Examine the transcript and context to determine if this note is related to a specific project. If a project is mentioned explicitly or can be inferred from the context, include it in the `project` field. The project name should match the project identifiers used in the context.
+
+For example, if the transcript mentions "walmart" and the context has information about a project called "walmart", set the project field to "walmart".
+
+## Provide Classification Metadata
+
+In addition to the structured information above, you must also provide the following metadata fields:
+
+### Confidence
+
+Provide a confidence score (0.0 to 1.0) indicating how confident you are in the classification. Consider factors like:
+- Clarity of the speaker's intent
+- Presence of explicit classification indicators
+- Ambiguity in the content
+- How well the transcript matches expected patterns for the classified type
+
+### Classification Signals
+
+Provide an array of classification signals that influenced your decision. Each signal should include:
+- `type`: The type of signal (e.g., "explicit phrase", "context type", "inferred from content")
+- `value`: The actual phrase or indicator (e.g., "walmart", "work", "meeting mentioned")
+- `weight`: A percentage (0-100) indicating how much this signal influenced the classification
+
+Example:
+```json
+"classificationSignals": [
+  { "type": "explicit phrase", "value": "walmart", "weight": 90 },
+  { "type": "context type", "value": "work", "weight": 20 }
+]
+```
+
+### Reasoning
+
+Provide a brief (1-2 sentence) explanation of why you classified this note the way you did. Focus on the key factors that influenced your decision.
+
+Example: "explicit phrase: \"walmart\", context: work"
+
+### Tags
+
+Provide an array of relevant tags that categorize this note. Tags should include:
+- The project name (if identified)
+- Key topics or entities mentioned
+- Any other relevant categorization labels from the context
+
+Example: `["walmart", "status-update", "sales"]`

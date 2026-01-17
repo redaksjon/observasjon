@@ -6,10 +6,33 @@ import * as LocatePhase from '@/phases/locate';
 import * as CompletePhase from '@/phases/complete';
 import * as Dreadcabinet from '@theunwalked/dreadcabinet';
 import { Config } from '@/observasjon';
+import path from 'path';
 export interface ClassifiedTranscription {
     text: string;
     type: string;
-    subject: string;
+    subject?: string;
+    project?: string;
+    confidence?: number;
+    classificationSignals?: Array<{
+        type: string;
+        value: string;
+        weight: number;
+    }>;
+    reasoning?: string;
+    tags?: string[];
+    attendees?: string[];
+    recipients?: string[];
+    conferenceTool?: string;
+    sections?: Array<{
+        title: string;
+        description: string;
+    }>;
+    tasks?: Array<{
+        task: string;
+        urgency?: string;
+        status?: string;
+    }>;
+    recordingTime?: string;
 }
 
 export interface Instance {
@@ -44,14 +67,16 @@ export const create = (config: Config, operator: Dreadcabinet.Operator): Instanc
 
         // Create the note
         const noteFilename = await operator.constructFilename(creationTime, classifiedTranscription.type, hash, { subject: classifiedTranscription.subject });
+        const noteBasename = path.basename(noteFilename);
+        const noteDestinationPath = path.join(outputPath, noteBasename.endsWith('.md') ? noteBasename : noteBasename + '.md');
         logger.debug('Composing Note %s in %s', noteFilename, outputPath);
-        await composePhase.compose(classifiedTranscription, outputPath, contextPath, interimPath, noteFilename, hash);
+        await composePhase.compose(classifiedTranscription, outputPath, contextPath, interimPath, noteFilename, hash, creationTime, noteDestinationPath);
 
         // Move the processed file to the processed directory
         logger.debug('Completing processing for %s', audioFile);
         await completePhase.complete(
             classifiedTranscription.type,
-            classifiedTranscription.subject,
+            classifiedTranscription.subject || 'unknown',
             hash,
             creationTime,
             audioFile
