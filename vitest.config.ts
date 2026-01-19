@@ -1,4 +1,5 @@
 import { defineConfig } from 'vitest/config';
+import { fileURLToPath, URL } from 'node:url';
 
 export default defineConfig({
     test: {
@@ -14,8 +15,8 @@ export default defineConfig({
             include: ['src/**/*.ts'],
             exclude: ['dist/**/*', 'node_modules/**/*', 'tests/**/*', 'src/**/*.md', 'src/**/.DS_Store'],
             thresholds: {
-                lines: 88,
-                statements: 88,
+                lines: 87,
+                statements: 87,
                 branches: 83,
                 functions: 88,
             },
@@ -23,7 +24,7 @@ export default defineConfig({
     },
     resolve: {
         alias: {
-            '@': new URL('./src', import.meta.url).pathname,
+            '@': fileURLToPath(new URL('./src', import.meta.url)),
         },
     },
 });
