@@ -1,5 +1,7 @@
 # Observasjon: Audio Transcription with Intelligence
 
+<!-- Test publish 2026-01-22 -->
+
 ## Overview
 
 Observasjon is a powerful command-line utility that transforms audio recordings into intelligent, context-enhanced notes. It uses AI to transcribe, classify, and enhance audio content, making it more useful and actionable.
