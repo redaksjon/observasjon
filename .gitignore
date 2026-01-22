@@ -15,3 +15,4 @@ outlog/.playwright-mcp/
 /.playwright-mcp
 package-lock.json
 .kodrdriv*
+tsconfig.tsbuildinfo
