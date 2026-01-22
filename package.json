@@ -38,7 +38,7 @@
   "dependencies": {
     "@theunwalked/dreadcabinet": "^0.0.1",
     "@theunwalked/cardigantime": "^0.0.1",
-    "@riotprompt/riotprompt": "^0.0.1",
+    "@riotprompt/riotprompt": "^0.0.21",
     "@types/fluent-ffmpeg": "^2.1.28",
     "commander": "^14.0.2",
     "dayjs": "^1.11.19",
